@@ -34,5 +34,12 @@ export default{
       method: 'post',
       data:teacher
     })
+  },
+  uploadFiles(file){
+    return request({
+      url:  `/OssService/uploadfile`,
+      method: 'post',
+      data:file
+  })
   }
 }

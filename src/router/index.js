@@ -53,7 +53,7 @@ export const constantRouterMap = [
         path: 'save',
         name: '添加教师',
         component: () => import('@/views/teacher/save'),
-        meta: { title: '添加教师', icon: 'tree' }
+        meta: { title: '添加教师', icon: 'tree' },
       },
       {
         path: 'edit/:id',

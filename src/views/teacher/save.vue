@@ -33,6 +33,35 @@
       </el-form-item>
 
       <!-- 讲师头像：TODO -->
+      <!-- 讲师头像 -->
+      <el-form-item label="讲师头像">
+        <!-- 头衔缩略图 -->
+        <pan-thumb :image="teacher.avatar" />
+        <!-- 文件上传按钮 -->
+        <el-button
+          type="primary"
+          icon="el-icon-upload"
+          @click="imagecropperShow = true"
+          >更换头像
+        </el-button>
+        <!--
+v-show：是否显示上传组件
+:key：类似于id，如果一个页面多个图片上传控件，可以做区分
+:url：后台上传的url地址
+@close：关闭上传组件
+@crop-upload-success：上传成功后的回调 -->
+        <image-cropper
+          v-show="imagecropperShow"
+          :width="300"
+          :height="300"
+          :key="imagecropperKey"
+          :url="BASE_API + '/OssService/uploadfile'"
+          field="file"
+          @close="close"
+          @crop-upload-success="cropSuccess"
+        />
+      </el-form-item>
+
       <el-form-item>
         <el-button
           :disabled="saveBtnDisabled"
@@ -46,7 +75,12 @@
 </template>
 <script>
 import teacher from "@/api/edu/teacher";
+//引入头像组件
+import ImageCropper from "@/components/ImageCropper";
+import PanThumb from "@/components/PanThumb";
+
 export default {
+  components: { ImageCropper, PanThumb },
   data() {
     return {
       teacher: {
@@ -58,18 +92,28 @@ export default {
         avatar: " ",
       },
       saveBtnDisabled: false, //保存按钮是否禁用
+      //上传弹框组件是否显示
+      imagecropperShow: false,
+      imagecropperKey: 0, //上传组件key值
+      BASE_API: process.env.BASE_API, //获取dev.env.js里面地址
     };
   },
   created() {
-    if (this.$route.params && this.$route.params.id) {
-      //从路径获取id值
-      const id = this.$route.params.id;
-      //调用根据id查询的方法
-      this.getteacherinfo(id);
-    }
+    this.init();
   },
   methods: {
-    addTeacher(teacher) {
+    init() {
+      if (this.$route.params && this.$route.params.id) {
+        //从路径获取id值
+        const id = this.$route.params.id;
+        //调用根据id查询的方法
+        this.getteacherinfo(id);
+      } else {
+        this.teacher = {};
+      }
+    },
+
+    addTeacher() {
       teacher.addTeacher(this.teacher).then((response) => {
         this.$message({
           type: "success",
@@ -79,10 +123,10 @@ export default {
       });
     },
     saveorupdate() {
-      if (!this.teacher.id) {
-        this.addTeacher(this.teacher);
+      if (this.teacher.id) {
+        this.updateTeacher();
       } else {
-        this.updateTeacher(this.teacher);
+        this.addTeacher();
       }
     },
     getteacherinfo(id) {
@@ -90,17 +134,33 @@ export default {
         this.teacher = response.data.item;
       });
     },
-    updateTeacher(teacher) {
+    updateTeacher() {
       teacher.updateTeacher(this.teacher).then((response) => {
         this.$message({
           type: "success",
-          message: "添加成功!",
+          message: "修改成功!",
         });
         this.$router.push({
           path: "/teacher/list",
         });
       });
     },
+    close() {
+      //关闭上传弹框的方法
+      this.imagecropperShow = false;
+      //上传组件初始化
+      this.imagecropperKey = this.imagecropperKey + 1;
+    },
+    cropSuccess(data) {
+      //上传成功的方法
+      this.imagecropperShow = false;
+      //参数resp.data被封装到了方法参数data中了
+      this.teacher.avatar = data.url;
+      this.imagecropperKey = this.imagecropperKey + 1;
+    },
   },
 };
 </script>
+
+
+
